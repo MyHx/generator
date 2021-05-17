@@ -1,0 +1,148 @@
+<#include "/macro.include"/>
+<#assign className = table.className>   
+<#assign classNameFirstLower = table.classNameFirstLower>   
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<#macro mapperEl value>${r"#{"}${value}}</#macro>
+<mapper namespace="${basepackage}.${basedao}.${basemapper}.${className}Mapper">
+
+	<resultMap id="BaseResultMap" type="${basepackage}.${baseentity}.${className}">
+        <#list table.columns as column>
+		<#if column.pk>
+			<id property="${column.columnNameLower}" column="${column.sqlName}" jdbcType="${column.jdbcSqlTypeName}"/>
+		</#if>
+		<#if !column.pk>
+			<result property="${column.columnNameLower}" column="${column.sqlName}" jdbcType="${column.jdbcSqlTypeName}"/>
+		</#if>
+		</#list>
+	</resultMap>
+	
+	<!-- 用于select查询公用抽取的列 -->
+	<sql id="Base_Column_List">
+		<#list table.columns as column>${column.sqlName}<#if column_has_next>,</#if></#list>
+	</sql>
+	
+	<sql id="Base_Column_List_T">
+		<#list table.columns as column>t.${column.sqlName}<#if column_has_next>,</#if></#list>
+	</sql>
+	
+	<sql id="Base_Column_Alias_List">
+		<#list table.columns as column>t.${column.sqlName} as ${column.columnNameLower}<#if column_has_next>,</#if></#list>
+	</sql>
+	
+	<!-- 根据ID查找记录-->
+	<select id="get" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+		select
+			<include refid="Base_Column_List" />
+		from
+			${table.sqlName}
+		where
+			Fid = <@mapperEl "id"/>
+	</select>
+	
+	<update id="update" parameterType="${basepackage}.${baseentity}.${className}">
+		update ${table.sqlName}
+		<set>
+			<#list table.notPkColumns as column>
+				<#if !(column.sqlName == 'Fmodify_time'
+				||column.sqlName == 'Fversion')>
+			<if test="${column.columnNameFirstLower} != null">
+			  ${column.sqlName} = ${r'#{'}${column.columnNameFirstLower}, jdbcType=${column.jdbcSqlTypeName} ${r'}'},
+			</if>
+				</#if>
+	        </#list>
+	        Fmodifier = ${r'#{'}curUser${r'}'},
+			Fmodify_time = now(),
+			Fversion = Fversion + 1
+		</set>
+		where
+			Fid = <@mapperEl "id"/>
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.Integer">
+		update ${table.sqlName}
+		set 
+			Fstatus = 0, 
+			Fmodifier = ${r'#{'}curUser${r'}'},
+			Fmodify_time = now(), 
+			Fversion = Fversion+1
+		where
+			Fid = <@mapperEl "id"/>
+	</delete>
+	
+	<insert id="add" useGeneratedKeys="true" keyProperty="id"
+		parameterType="${basepackage}.${baseentity}.${className}">
+		insert into ${table.sqlName}
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+		<#list table.columns as column>
+			<#if !isCommonColumn(column)>
+			<if test="${column.columnNameFirstLower} != null">
+				${column.sqlName},
+			</if>
+			</#if>
+        </#list>
+        	Fcreator,
+        	Fcreate_time,
+        	Fmodifier,
+        	Fmodify_time,
+        	Fstatus,
+        	Fversion
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+	    <#list table.columns as column>
+	    	<#if !isCommonColumn(column)>
+			<if test="${column.columnNameFirstLower} != null">
+				${r'#{'}${column.columnNameFirstLower}, jdbcType=${column.jdbcSqlTypeName}${r'},'}
+			</if>
+			</#if>
+        </#list>
+        	${r'#{'}curUser${r'}'},
+        	now(),
+        	${r'#{'}curUser${r'}'},
+        	now(),
+        	1,
+        	1
+		</trim>
+	</insert>
+	
+	<sql id="dynamicWhere">
+		<where>
+			t.Fstatus = 1
+			 <#list table.columns as column>
+		    	<#if !isCommonColumn(column)>
+			    	<#if column.simpleJavaType == 'String' >
+						<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(${column.columnNameFirstLower})">
+							AND t.${column.sqlName} = ${r'#{'}${column.columnNameFirstLower}, jdbcType=${column.jdbcSqlTypeName}${r'}'}
+						</if>
+					<#else>
+						<if test="${column.columnNameFirstLower} != null">
+							AND t.${column.sqlName} =  ${r'#{'}${column.columnNameFirstLower}, jdbcType=${column.jdbcSqlTypeName}${r'}'}
+						</if>
+					</#if>
+				</#if>
+	        </#list>
+		</where>
+	</sql>
+	
+	<select id="list" parameterType="${basepackage}.${subpackage}.domain.${className}" resultMap="BaseResultMap">
+		SELECT 
+			<include refid="Base_Column_List_T"></include>
+		FROM 
+			${table.sqlName} t
+		<include refid="dynamicWhere"></include>
+		ORDER BY t.Fid DESC
+	</select>
+	
+	<select id="count" parameterType="${basepackage}.${baseentity}.${className}" resultType="java.lang.Integer">
+		SELECT 
+			count(1)
+		FROM 
+			${table.sqlName} t
+		<include refid="dynamicWhere"></include>
+	</select>
+	
+		<sql id="Base_Column_Alias_List">
+		<#list table.columns as column>${r'#{'} vo.${column.columnNameLower} ${r'}'}<#if column_has_next>,</#if></#list>
+	</sql>
+	
+</mapper>

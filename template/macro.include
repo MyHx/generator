@@ -1,0 +1,59 @@
+<#-- 本文件包含一些公共的函数,本文件会被其它模板自动include -->
+
+<#-- 将value变成jsp el表达式,主要由于FreeMarker生成表达式不方便 -->
+<#macro jspEl value>${r"${"}${value}}</#macro>
+
+<#-- 生成java构造函数 -->
+<#macro generateConstructor constructor>
+	public ${constructor}(){
+	}
+
+	public ${constructor}(
+	<#list table.compositeIdColumns as column>
+		${column.javaType} ${column.columnNameLower}<#if column_has_next>,</#if>
+	</#list>		
+	){
+	<#list table.compositeIdColumns as column>
+		<#if column.pk>
+		this.${column.columnNameLower} = ${column.columnNameLower};
+		</#if>
+	</#list>	
+	}
+
+</#macro>
+<#function isCommonColumn column>
+	 <#if column.sqlName == 'Fcreator'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'Fcreate_time'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'Fmodifier'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'Fmodify_time'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'Fstatus'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'Fversion'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'Fid'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'GMT_CREATE'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'GMT_MODIFIED'>
+	 	<#return true/>
+	 <#elseif column.sqlName == 'ID'>
+	 	<#return true/>
+	 <#else>
+	 	<#return false/>
+	 </#if>
+</#function>
+
+
+<#macro defaultValue column>
+	 <#if column.javaType == 'String'>
+	 	'${column.defaultValue}'
+	 <#elseif column.sqlName == 'Date'>
+	 	'${column.defaultValue}'
+	 <#else>
+	 	${column.defaultValue}
+	 </#if>
+</#macro>
