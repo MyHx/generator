@@ -22,7 +22,7 @@ import java.util.Date;
 public class ${className} implements Serializable {
 	
 	<#list table.columns as column>
-	<#if column.columnNameLower == 'id'>
+	<#if column.columnNameLower == 'Fid'>
 	/** ${column.columnAlias} */
 	@Id
 	@Column(name = "${column.sqlName}")

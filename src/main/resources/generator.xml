@@ -19,7 +19,7 @@
 	<!-- jsp namespace: web/${namespace}/${className}/list.jsp -->
 	<entry key="namespace">pages</entry>
 
-	<entry key="tableName">t_super_entry_msg_feedback_detail</entry>
+	<entry key="tableName">t_fund_change_record</entry>
 	
 	
 	<!-- 输出目录,相对 cd 路径 -->
@@ -54,6 +54,11 @@
 	<entry key="jdbc.driver">com.mysql.jdbc.Driver</entry>
 	<entry key="jdbc.username">caizhi_dev</entry>
 	<entry key="jdbc.password">caizhiUser4Dev</entry>
+
+<!--	<entry key="jdbc.url">jdbc:mysql://sh-cdb-2hydn52m.sql.tencentcdb.com:60843/jydb</entry>
+	<entry key="jdbc.driver">com.mysql.jdbc.Driver</entry>
+	<entry key="jdbc.username">tenwit_jydb</entry>
+	<entry key="jdbc.password">K8pWdF3JWxtsfpng</entry>-->
 	
 	
 
