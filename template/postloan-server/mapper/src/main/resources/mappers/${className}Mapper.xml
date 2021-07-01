@@ -44,16 +44,10 @@
 		update ${table.sqlName}
 		<set>
 			<#list table.notPkColumns as column>
-				<#if !(column.sqlName == 'Fmodify_time'
-				||column.sqlName == 'Fversion')>
 			<if test="${column.columnNameFirstLower} != null">
 			  ${column.sqlName} = ${r'#{'}${column.columnNameFirstLower}, jdbcType=${column.jdbcSqlTypeName} ${r'}'},
 			</if>
-				</#if>
 	        </#list>
-	        Fmodifier = ${r'#{'}curUser${r'}'},
-			Fmodify_time = now(),
-			Fversion = Fversion + 1
 		</set>
 		where
 			Fid = <@mapperEl "id"/>
@@ -61,11 +55,8 @@
 	
 	<delete id="delete" parameterType="java.lang.Integer">
 		update ${table.sqlName}
-		set 
-			Fstatus = 0, 
-			Fmodifier = ${r'#{'}curUser${r'}'},
-			Fmodify_time = now(), 
-			Fversion = Fversion+1
+		set
+		Fis_deleted = 1
 		where
 			Fid = <@mapperEl "id"/>
 	</delete>
@@ -81,12 +72,6 @@
 			</if>
 			</#if>
         </#list>
-        	Fcreator,
-        	Fcreate_time,
-        	Fmodifier,
-        	Fmodify_time,
-        	Fstatus,
-        	Fversion
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 	    <#list table.columns as column>
@@ -96,18 +81,12 @@
 			</if>
 			</#if>
         </#list>
-        	${r'#{'}curUser${r'}'},
-        	now(),
-        	${r'#{'}curUser${r'}'},
-        	now(),
-        	1,
-        	1
 		</trim>
 	</insert>
 	
 	<sql id="dynamicWhere">
 		<where>
-			t.Fstatus = 1
+			t.Fis_deleted = 0
 			 <#list table.columns as column>
 		    	<#if !isCommonColumn(column)>
 			    	<#if column.simpleJavaType == 'String' >
